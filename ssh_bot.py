@@ -51,15 +51,19 @@ def ssh_bot (myargs:argparse.Namespace) -> int:
         print(f"Unknown exception: {e}")
         return os.EX_IOERR
 
-    for command in commands:
-        stdin, stdout, stderr = ssh.exec_command(commands, timeout=10) 
-        ssh_output = stdout.readlines()
-        if (ssh_err := stderr.read()):
-            print (f"Problem occured while running command: {command}\nError: {ssh_err}")
-            return os.EX_IOERR
-    else:
+    try:
+        for command in commands:
+            stdin, stdout, stderr = ssh.exec_command(commands, timeout=10) 
+            ssh_output = stdout.readlines()
+            if (ssh_err := stderr.read()):
+                print (f"Problem occured while running command: {command}\nError: {ssh_err}")
+                return os.EX_IOERR
+
+            print(f"Submitted {command}")
+    finally:
         ssh.close()
 
+    return os.EX_OK
 
 
 def gaussian_job (myargs:argparse.Namespace) -> list:
