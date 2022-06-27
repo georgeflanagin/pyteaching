@@ -22,9 +22,10 @@ def ssh_bot (myargs:argparse.Namespace) -> int:
     """
     Execute a few commands using Paramiko.
     """
-    if not (lines := open(myargs.job_file).split("\n")):
-        print(f"{myargs.job_file} is empty.")
-        return os.EX_NOINPUT
+    with open(myargs.job_file) as in_file:
+        if not (lines := in_file.read().split("\n")):
+            print(f"{myargs.job_file} is empty.")
+            return os.EX_NOINPUT
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
