@@ -52,7 +52,8 @@ def ssh_bot (myargs:argparse.Namespace) -> int:
         return os.EX_IOERR
 
     try:
-        for command in commands:
+        lines = open(myargs.job_file).split("\n")
+        for command in (f"cd {myargs.dir} && qg16 {line}" for line in lines):
             stdin, stdout, stderr = ssh.exec_command(commands, timeout=10) 
             ssh_output = stdout.readlines()
             if (ssh_err := stderr.read()):
@@ -65,12 +66,6 @@ def ssh_bot (myargs:argparse.Namespace) -> int:
 
     return os.EX_OK
 
-
-def gaussian_job (myargs:argparse.Namespace) -> list:
-
-    lines = open(myargs.job_file).split("\n")
-    return tuple( f"cd {myargs.dir} && qg16 {line}" for line in lines )
-    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='gaussian_job',
