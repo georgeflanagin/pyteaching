@@ -5,21 +5,17 @@ import os
 import sched
 import time
 
-from urdecorators import trap
+script, job_file = argv
 
-# script, job_file = argv
+host = "server.richmond.edu"
+ssh_username = "netid"
+ssh_password = "xxxxxxxxxxxxxxxxxxxxx"
 
-host = "spydur.richmond.edu"
-ssh_username = "gflanagi"
-ssh_password = "xxxxxxxxxxxxxxxxxx"
-
-@trap
 def ssh_bot (hostname, username, password, commands):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     ssh.load_system_host_keys()
-    print("host keys loaded.")
     result_flag = True
     try:
         ssh.connect (
@@ -28,16 +24,15 @@ def ssh_bot (hostname, username, password, commands):
             password=ssh_password)
 
         # Added for loop here but didn't work
-        print(f"{commands=}")
-        stdin, stdout, stderr = ssh.exec_command(commands, timeout=10)         
-
+        print(commands)
+        stdin, stdout, stderr = ssh.exec_command(commands, timeout=10) 
+        
         ssh_output = stdout.readlines()
         ssh_err = stderr.read()
         if ssh_err:
             print ("Problem occured while running command:" + commands + "Error:" + ssh_err)
             result_flag = False
         else:
-            print("No error. Here is the output")
             print(''.join(ssh_output))
             result_flag = False
         ssh.close()
@@ -46,13 +41,12 @@ def ssh_bot (hostname, username, password, commands):
         print ("command timed out.", commands)
         ssh.client.close()
         result_flag = False
-
     except paramiko.SSHException:
         print("Falid to execute the command!", commands)
         ssh.client.close()
         result_flag = False
 
-@trap
+
 def gaussian_job (job_file):
 
     project_folder = input ("Name of project folder:> ") or None
@@ -73,6 +67,6 @@ def gaussian_job (job_file):
     return commands
 
 
-# commands = gaussian_job(job_file)
+commands = gaussian_job(job_file)
 
-ssh_bot ("coltrane", "demouser", "x", "echo 'hello world'")
+#ssh_bot (host, ssh_username, ssh_password, commands)
