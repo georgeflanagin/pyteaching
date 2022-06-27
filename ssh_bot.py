@@ -1,17 +1,31 @@
-from sys import argv
-import paramiko
-import socket
+# -*- coding: utf-8 -*-
+import typing
+from   typing import *
+
 import os 
+import sys
+min_py = (3, 8)
+
+if sys.version_info < min_py:
+    print(f"This program requires at least Python {min_py[0]}.{min_py[1]}")
+    sys.exit(os.EX_SOFTWARE)
+
+import socket
 import sched
 import time
 
-script, job_file = argv
+import paramiko
+
+script, job_file = sys.argv
 
 host = "server.richmond.edu"
 ssh_username = "netid"
 ssh_password = "xxxxxxxxxxxxxxxxxxxxx"
 
-def ssh_bot (hostname, username, password, commands):
+def ssh_bot (hostname:str, username:str, password:str, commands:list=[]):
+    """
+    Execute a few commands using Paramiko.
+    """
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -47,23 +61,25 @@ def ssh_bot (hostname, username, password, commands):
         result_flag = False
 
 
-def gaussian_job (job_file):
+def gaussian_job (job_file:str) -> list:
 
     project_folder = input ("Name of project folder:> ") or None
     sub_folder_1 = input ("Name of 1st subfolder folder:> ") or None
     sub_folder_2 = input ("Name of 2nd subfolder folder:> ") or None
     jobs = open(job_file, 'r')
-    
+
+    commands = []    
+
     for job in jobs:
         if project_folder == None:
-            commands = (f'cd work && qg16 {job}')
+            commands.append(f'cd work && qg16 {job}')
         if project_folder != None:
             if sub_folder_1 == None:
-                commands = (f'cd work && cd {project_folder} && qg16 {job}')
+                commands.append(f'cd work && cd {project_folder} && qg16 {job}')
             if (sub_folder_1 != None) and (sub_folder_2 == None):
-                commands = (f'cd work && cd {project_folder} && cd {sub_folder_1} && qg16 {job}')
+                commands.append(f'cd work && cd {project_folder} && cd {sub_folder_1} && qg16 {job}')
             if (sub_folder_1 != None) and (sub_folder_2 != None):
-                commands = (f'cd work && cd {project_folder} && cd {sub_folder_1} && cd {sub_folder_2} && qg16 {job}')
+                commands.append(f'cd work && cd {project_folder} && cd {sub_folder_1} && cd {sub_folder_2} && qg16 {job}')
     return commands
 
 
