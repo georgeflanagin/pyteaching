@@ -13,8 +13,6 @@ if sys.version_info < min_py:
 import argparse
 import getpass
 import socket
-import sched
-import time
 
 import paramiko
 
