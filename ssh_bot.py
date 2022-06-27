@@ -37,13 +37,11 @@ def ssh_bot (myargs:argparse.Namespace) -> int:
             )
 
     except socket.timeout as e:
-        print ("command timed out.", commands)
-
-    except paramiko.SSHException:
-        print("Failed to execute the command!", commands)
+        print (f"command timed out. {e}")
+        return os.EX_IOERR
 
     except Exception as e:
-        print(f"Unknown exception: {e}")
+        print(f"Other exception: {e}")
         return os.EX_IOERR
 
     try:
