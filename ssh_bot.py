@@ -18,18 +18,18 @@ import time
 
 import paramiko
 
-
 def ssh_bot (myargs:argparse.Namespace) -> int:
     """
     Execute a few commands using Paramiko.
     """
-    commands = gaussian_job(myargs)
+    if not (lines := open(myargs.job_file).split("\n")):
+        print(f"{myargs.job_file} is empty.")
+        return os.EX_NOINPUT
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.load_system_host_keys()
 
-    result_flag = True
     try:
         ssh.connect (
             hostname=myargs.host,
@@ -39,24 +39,19 @@ def ssh_bot (myargs:argparse.Namespace) -> int:
 
     except socket.timeout as e:
         print ("command timed out.", commands)
-        ssh.client.close()
-        result_flag = False
 
     except paramiko.SSHException:
-        print("Falid to execute the command!", commands)
-        ssh.client.close()
-        result_flag = False
+        print("Failed to execute the command!", commands)
 
     except Exception as e:
         print(f"Unknown exception: {e}")
         return os.EX_IOERR
 
     try:
-        lines = open(myargs.job_file).split("\n")
         for command in (f"cd {myargs.dir} && qg16 {line}" for line in lines):
-            stdin, stdout, stderr = ssh.exec_command(commands, timeout=10) 
-            ssh_output = stdout.readlines()
-            if (ssh_err := stderr.read()):
+            _stdin, _stdout, _stderr = ssh.exec_command(commands, timeout=10) 
+            ssh_output = _stdout.readlines()
+            if (ssh_err := _stderr.read()):
                 print (f"Problem occured while running command: {command}\nError: {ssh_err}")
                 return os.EX_IOERR
 
@@ -75,13 +70,16 @@ if __name__ == "__main__":
         help="User id for submitting the job. Defaults to the user running this program.")
     parser.add_argument('-p', '--password', type=str, required=True,
         help="Password for the user id.")
-    parser.add_argument('-h', '--host', type=str, default=socket.gethostname(),
+    parser.add_argument('--host', type=str, default=socket.gethostname(),
         help="Name of CPU where job will be submitted. Defaults to *this* CPU.")
     parser.add_argument('-d', '--dir', type=str, default="",
         help="Name of directory under /work that contains the data.")
 
-    parser.add_argument('job_file', type=str, required=True,
+    parser.add_argument('job_file', type=str,
         help="Name of the file containing the job to be submitted.")
 
-    sys.exit(ssh_bot(parser.parse_args()))
+    my_args=parser.parse_args()
+    my_args.dir = f"/work/{myargs.dir}"
+
+    sys.exit(ssh_bot(my_args))
 
